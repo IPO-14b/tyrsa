@@ -1,10 +1,12 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const url = require('url')
+fs = require('fs');
 let win
 const electronOauth2 = require('electron-oauth2');
 var gDrive = require('google-drive')
 var jsonfile = require('jsonfile')
+var mime = require('mime-types');
 var resultArray = new Array();
 var config = {
     clientId: '782392691234-oo2qfvrlp3gnp9kqlh5srvuk41huhm80.apps.googleusercontent.com',
@@ -14,6 +16,8 @@ var config = {
     useBasicAuthorizationHeader: false,
     redirectUri: 'http://localhost'
 };
+var globalToken;
+global.currentPath = ".";
 
 function createWindow () {
   win = new BrowserWindow({width: 800, height: 600,show:false})
@@ -25,7 +29,7 @@ function createWindow () {
     }
   }
 
-  let wait = new BrowserWindow({parent:win, modal:true,width: 800, height: 600})
+  let wait = new BrowserWindow({parent:win, modal:true,width: 800, height: 600, show:false})
   wait.loadURL(url.format({ 
     pathname: path.join(__dirname, 'wait.html'),
     protocol: 'file:',
@@ -45,16 +49,15 @@ function createWindow () {
           var file = 'data.json'
           jsonfile.readFile(file, function (err,obj) {
             if (typeof obj === 'undefined'){
-              console.log("Launching listFiles")
+              globalToken = newToken.access_token;
               listFiles(newToken.access_token)
             }
             else{
-              console.log("launching write")
+              globalToken = newToken.access_token;
               resultArray = obj
               write()
             }
           })
-          //listFiles(newToken.access_token)
         });
     });
 
@@ -64,13 +67,67 @@ function createWindow () {
     slashes: true
   }))
   win.on('closed', () => {
-    //win = null
     app.quit()
   })
+
+
 }
 
 app.on('ready', createWindow)
 
+ipcMain.on('sendFile', (event, arg) => {  
+      var fstatus = fs.statSync(arg);
+      fs.open(arg, 'r', function(status, fileDescripter) {
+        if (status) {
+          callback(status.message);
+          return;
+        }
+        var buffer = new Buffer(fstatus.size);
+        console.log("NAME: ",path.parse(arg).base);
+        fs.read(fileDescripter, buffer, 0, fstatus.size, 0, function(err, num) {
+          var parameters = {
+            'url': 'https://www.googleapis.com/upload/drive/v2/files',
+            'qs': {
+              'uploadType': 'multipart'
+            },
+            'headers' : {
+              'Authorization': 'Bearer ' + globalToken
+            },
+            'multipart':  [
+              {
+                'Content-Type': 'application/json; charset=UTF-8',
+                'body': JSON.stringify({
+                  'title': path.parse(arg).base
+                })
+              },
+              {
+                'Content-Type': mime.lookup(arg),
+                'body': buffer
+              }
+            ]
+          };
+          var fileMetadata = {
+            'title': path.parse(arg).base
+          };
+          var media = {
+            mimeType: mime.lookup(arg),
+            body: fs.createReadStream(arg)
+          };
+          gDrive(globalToken).files().insert({
+            'qs': {
+              'uploadType': 'resumable'
+            },
+            resource: fileMetadata,
+            media: media,
+            fields: 'id'
+          },(meta,params,callback) => {
+              console.log("META: ",meta);
+              //console.log("PARAMS: ",params);
+              //console.log("CALLBACK: ",callback);
+          });
+      });
+    }); 
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -140,12 +197,9 @@ function listFiles(token,requirePageToken,pageToken){
 
 function write(){
   var file = 'data.json'
-  console.log("Try to write to JSON")
-  jsonfile.writeFile(file, resultArray, function(err) {
-    if(err != 'null')
-      console.error(err)
-  })
-  console.log(resultArray)
+  jsonfile.writeFile(file, resultArray, function(err) {})
   win.show();
   win.webContents.send('info',resultArray);
+  //win.webContents.openDevTools();
+  
 }

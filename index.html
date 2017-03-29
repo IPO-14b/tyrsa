@@ -22,7 +22,18 @@
     
 </head>
 <body>
+<script type="text/javascript">
+function uploadFile(){
+	const dialog = require('electron').remote.dialog
+	const ipcRenderer = require('electron').ipcRenderer
+	dialog.showOpenDialog({properties: ['openFile']},function(fileNames){
+		if (fileNames === undefined) return;
+ 	 	var fileName = fileNames[0];
+		ipcRenderer.send('sendFile', fileName);
+	});
 
+}
+</script>
 
 <!-- Main container -->
 <div class="page-container">
@@ -37,17 +48,24 @@
 		</div>
 		<div class="row voffset">
 			<div class="col-sm-4">
-				<a href="index.html" class="btn btn-d btn-lg btn-block">Доступные мне</a><a href="index.html" class="btn btn-d btn-lg btn-block">Общий доступ</a><a href="index.html" class="btn btn-d btn-lg btn-block">Фото</a><a href="index.html" class="btn btn-d btn-lg btn-block">Корзина</a>
+				<a class="btn btn-d btn-lg btn-block">Доступные мне</a>
+				<a class="btn btn-d btn-lg btn-block">Общий доступ</a>
+				<a class="btn btn-d btn-lg btn-block">Фото</a>
+				<a class="btn btn-d btn-lg btn-block">Корзина</a>
 			</div>
 			<div class="col-sm-4">
 				<div class="file-list" id="file-list">
 				</div>
 			</div>
 			<div class="col-sm-4">
-				<a href="index.html" class="btn btn-d btn-block btn-lg">Загрузить</a>
+				<a class="btn btn-d btn-block btn-lg" onclick="uploadFile()">Загрузить</a>
 				<div class="text-center">
-					<a href="index.html" class="btn btn-d btn-block btn-lg">Скачать</a>
-				</div><a href="index.html" class="btn btn-d btn-block btn-lg">Открыть</a><a href="index.html" class="btn btn-d btn-lg btn-block">Поделиться</a><a href="index.html" class="btn btn-d btn-lg btn-block">Копировать</a><a href="index.html" class="btn btn-d btn-lg btn-block">Удалить</a><a href="index.html" class="btn btn-d btn-lg btn-block ">Свойства</a>
+					<a class="btn btn-d btn-block btn-lg">Скачать</a>
+				</div><a class="btn btn-d btn-block btn-lg">Открыть</a>
+				<a class="btn btn-d btn-lg btn-block">Поделиться</a>
+				<a class="btn btn-d btn-lg btn-block">Копировать</a>
+				<a class="btn btn-d btn-lg btn-block">Удалить</a>
+				<a class="btn btn-d btn-lg btn-block ">Свойства</a>
 			</div>
 		</div>
 	</div>
@@ -64,12 +82,12 @@
 <!-- Main container END -->
     
 <script type="text/javascript">
+
 const ipcRenderer = require('electron').ipcRenderer
+
 ipcRenderer.on('info' , function(event , data){  
 var list = document.getElementById("file-list");
 for (var i = 0; i < data.length; i++){
-
-	// list.innerHTML += "<div class=\"panel\"><div class=\"panel-body\"><p>"+data[i]["name"]+"</p></div></div>";
 
 	var panelDiv = document.createElement("div");
 	panelDiv.classList.add("panel");
@@ -89,7 +107,7 @@ for (var i = 0; i < data.length; i++){
 	panelBody.appendChild(p);
 	panelDiv.appendChild(panelBody);
 	list.appendChild(panelDiv);
-	}
+}
 });
  </script>
 </body>
