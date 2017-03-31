@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    
+	<link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css"><link rel="stylesheet" href="./css/font-awesome.min.css">
+    
+	<script src="./js/jquery-2.1.0.min.js"></script>
+	<script src="./js/bootstrap.min.js"></script>
+	<script src="./js/blocs.min.js"></script>
+    <title>Home</title>
+
+    
+<!-- Google Analytics -->
+ 
+<!-- Google Analytics END -->
+    
+</head>
+<body>
+
+
+<!-- Main container -->
+<div class="page-container">
+    
+<!-- bloc-0 -->
+<div class="bloc bgc-white bg-desk-equipment d-bloc" id="bloc-0">
+	<div class="container bloc-lg">
+		<div class="row">
+			<div class="col-sm-12">
+				<span class="empty-column thin"></span>
+			</div>
+		</div>
+		<div class="row voffset">
+			<div class="col-sm-4">
+				<a href="index.html" class="btn btn-d btn-lg btn-block">Доступные мне</a><a href="index.html" class="btn btn-d btn-lg btn-block">Общий доступ</a><a href="index.html" class="btn btn-d btn-lg btn-block">Фото</a><a href="index.html" class="btn btn-d btn-lg btn-block">Корзина</a>
+			</div>
+			<div class="col-sm-4">
+				<div class="file-list" id="file-list">
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<a href="index.html" class="btn btn-d btn-block btn-lg">Загрузить</a>
+				<div class="text-center">
+					<a href="index.html" class="btn btn-d btn-block btn-lg">Скачать</a>
+				</div><a href="index.html" class="btn btn-d btn-block btn-lg">Открыть</a><a href="index.html" class="btn btn-d btn-lg btn-block">Поделиться</a><a href="index.html" class="btn btn-d btn-lg btn-block">Копировать</a><a href="index.html" class="btn btn-d btn-lg btn-block">Удалить</a><a href="index.html" class="btn btn-d btn-lg btn-block ">Свойства</a>
+			</div>
+		</div>
+	</div>
+	<div class="test">Powered By Tyrsa</div>
+</div>
+<!-- bloc-0 END -->
+
+<!-- ScrollToTop Button -->
+<a class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1')"><span class="fa fa-chevron-up"></span></a>
+<!-- ScrollToTop Button END-->
+
+
+</div>
+<!-- Main container END -->
+    
+<script type="text/javascript">
+const ipcRenderer = require('electron').ipcRenderer
+ipcRenderer.on('info' , function(event , data){  
+var list = document.getElementById("file-list");
+for (var i = 0; i < data.length; i++){
+
+	// list.innerHTML += "<div class=\"panel\"><div class=\"panel-body\"><p>"+data[i]["name"]+"</p></div></div>";
+
+	var panelDiv = document.createElement("div");
+	panelDiv.classList.add("panel");
+
+	var panelBody = document.createElement("div");
+	panelBody.classList.add("panel-body");
+
+	var p = document.createElement("a");
+	p.innerText = data[i]["name"];
+
+	var img = document.createElement("img");
+	if(data[i]["folder"] === true)
+		img.setAttribute("src","./img/folder-icon3.png");
+	else
+		img.setAttribute("src","./img/docs-icon-2.png");
+	panelBody.appendChild(img);
+	panelBody.appendChild(p);
+	panelDiv.appendChild(panelBody);
+	list.appendChild(panelDiv);
+	}
+});
+ </script>
+</body>
+</html>
