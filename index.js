@@ -18,6 +18,7 @@ var config = {
 };
 var globalToken;
 global.currentPath = ".";
+var request = require('request');
 
 function createWindow () {
   win = new BrowserWindow({width: 800, height: 600,show:false})
@@ -85,7 +86,7 @@ ipcMain.on('sendFile', (event, arg) => {
         var buffer = new Buffer(fstatus.size);
         console.log("NAME: ",path.parse(arg).base);
         fs.read(fileDescripter, buffer, 0, fstatus.size, 0, function(err, num) {
-          var parameters = {
+          request.post( {
             'url': 'https://www.googleapis.com/upload/drive/v2/files',
             'qs': {
               'uploadType': 'multipart'
@@ -101,30 +102,16 @@ ipcMain.on('sendFile', (event, arg) => {
                 })
               },
               {
-                'Content-Type': mime.lookup(arg),
+                'Content-Type': mime.lookup(arg) || "application/octet-stream",
                 'body': buffer
               }
             ]
-          };
-          var fileMetadata = {
-            'title': path.parse(arg).base
-          };
-          var media = {
-            mimeType: mime.lookup(arg),
-            body: fs.createReadStream(arg)
-          };
-          gDrive(globalToken).files().insert({
-            'qs': {
-              'uploadType': 'resumable'
-            },
-            resource: fileMetadata,
-            media: media,
-            fields: 'id'
-          },(meta,params,callback) => {
-              console.log("META: ",meta);
-              //console.log("PARAMS: ",params);
-              //console.log("CALLBACK: ",callback);
+          },function(arg0,arg1,arg2){
+            console.log("arg0: ", arg0);
+            console.log("arg1: ", arg1);
+            console.log("arg2: ", arg2);
           });
+          
       });
     }); 
 });
