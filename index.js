@@ -107,9 +107,15 @@ ipcMain.on('sendFile', (event, arg) => {
               }
             ]
           },function(arg0,arg1,arg2){
-            console.log("arg0: ", arg0);
-            console.log("arg1: ", arg1);
-            console.log("arg2: ", arg2);
+            var jsonArg = JSON.parse(arg2)
+            var name = jsonArg["title"]
+            var id = jsonArg["id"]
+            var tmp = {};
+            tmp.id = id;
+            tmp.name = name;
+            tmp.folder = false;
+            resultArray.push(tmp);
+            write();
           });
           
       });
