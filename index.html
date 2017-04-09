@@ -33,6 +33,11 @@ function uploadFile(){
 	});
 
 }
+function sync(){
+	const ipcRenderer = require('electron').ipcRenderer
+	alert("Начало синхронизации. Дождитесь сообщения об окончании!")
+	ipcRenderer.send('sync');
+}
 </script>
 
 <!-- Main container -->
@@ -48,7 +53,7 @@ function uploadFile(){
 		</div>
 		<div class="row voffset">
 			<div class="col-sm-4">
-				<a class="btn btn-d btn-lg btn-block">Синхронизировать</a>
+				<a class="btn btn-d btn-lg btn-block" onclick="sync()">Синхронизировать</a>
 				<a class="btn btn-d btn-lg btn-block">Доступные мне</a>
 				<a class="btn btn-d btn-lg btn-block">Общий доступ</a>
 				<a class="btn btn-d btn-lg btn-block">Фото</a>
@@ -87,28 +92,30 @@ function uploadFile(){
 const ipcRenderer = require('electron').ipcRenderer
 
 ipcRenderer.on('info' , function(event , data){  
-var list = document.getElementById("file-list");
-for (var i = 0; i < data.length; i++){
+	var list = document.getElementById("file-list");
+	list.innerHTML = '';
+	for (var i = 0; i < data.length; i++){
 
-	var panelDiv = document.createElement("div");
-	panelDiv.classList.add("panel");
+		var panelDiv = document.createElement("div");
+		panelDiv.classList.add("panel");
 
-	var panelBody = document.createElement("div");
-	panelBody.classList.add("panel-body");
+		var panelBody = document.createElement("div");
+		panelBody.classList.add("panel-body");
 
-	var p = document.createElement("a");
-	p.innerText = data[i]["name"];
+		var p = document.createElement("a");
+		p.innerText = data[i]["name"];
 
-	var img = document.createElement("img");
-	if(data[i]["folder"] === true)
-		img.setAttribute("src","./img/folder-icon3.png");
-	else
-		img.setAttribute("src","./img/docs-icon-2.png");
-	panelBody.appendChild(img);
-	panelBody.appendChild(p);
-	panelDiv.appendChild(panelBody);
-	list.appendChild(panelDiv);
-}
+		var img = document.createElement("img");
+		if(data[i]["folder"] === true)
+			img.setAttribute("src","./img/folder-icon3.png");
+		else
+			img.setAttribute("src","./img/docs-icon-2.png");
+		panelBody.appendChild(img);
+		panelBody.appendChild(p);
+		panelDiv.appendChild(panelBody);
+		list.appendChild(panelDiv);
+	}
+	alert("Загрузка завершена!")	
 });
  </script>
 </body>
