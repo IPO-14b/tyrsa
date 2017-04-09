@@ -19,7 +19,10 @@ var config = {
 var globalToken;
 global.currentPath = ".";
 var request = require('request');
-
+const options = {
+    scope: 'https://www.googleapis.com/auth/drive',
+    accessType: 'offline'
+  }
 function createWindow () {
   win = new BrowserWindow({width: 800, height: 600,show:false})
    const windowParams = {
@@ -37,10 +40,7 @@ function createWindow () {
     slashes: true
   }))
 
-  const options = {
-    scope: 'https://www.googleapis.com/auth/drive',
-    accessType: 'offline'
-  }
+
   const myApiOauth = electronOauth2(config, windowParams);
 
   myApiOauth.getAccessToken(options)
@@ -75,6 +75,20 @@ function createWindow () {
 }
 
 app.on('ready', createWindow)
+
+ipcMain.on('sync',(event, arg) => {
+  const myApiOauth = electronOauth2(config);
+  myApiOauth.getAccessToken(options)
+    .then(token => {
+      myApiOauth.refreshToken(token.refresh_token)
+        .then(newToken => {
+          globalToken = newToken.access_token;
+          console.log(newToken)
+          resultArray = new Array();
+          listFiles(newToken.access_token)
+        });
+    });
+})
 
 ipcMain.on('sendFile', (event, arg) => {  
       var fstatus = fs.statSync(arg);
@@ -194,5 +208,4 @@ function write(){
   win.show();
   win.webContents.send('info',resultArray);
   //win.webContents.openDevTools();
-  
 }
