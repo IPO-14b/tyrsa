@@ -342,7 +342,9 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 .bg-desk-equipment{
 	background-image:url('img/desk-equipment.jpg');
 }
-
+#selected{
+	background-color: #696969;
+}
 
 
 /* = Mobile adjustments 
