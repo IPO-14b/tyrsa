@@ -101,6 +101,10 @@ function openFolder(){
 <!-- Main container END -->
     
 <script type="text/javascript">
+window.addEventListener("dblclick",function(e){
+	e.preventDefault();
+	openFolder();
+})
 window.addEventListener("keydown",function(e){
 	if(e.code === "ArrowDown" || e.code === "ArrowUp"){
 		//e.preventDefault();
