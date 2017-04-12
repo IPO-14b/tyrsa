@@ -94,6 +94,25 @@ a,button{outline: none!important;} /* Prevent ugly blue glow on chrome and safar
 	border-color:rgba(0,0,0,.3);
 }
 
+.panel-body{
+	display: flex;
+	align-items: center;
+}
+
+.panel-body>img{
+	
+	/*display: inline-block;*/
+}
+
+.panel-body>div{
+	flex-grow: 1;
+	/*display: table-cell;*/
+	vertical-align: middle;
+	text-align: left;
+	/*display: inline-block;*/
+	padding-left: 10px;
+}
+
 /* Row Margin Offsets */
 
 .voffset{
@@ -262,6 +281,7 @@ button{
 .panel{
 	border:0;
 	box-shadow: 0 0 2px rgba(0,0,0,.4);
+	overflow: hidden;
 }
 .panel-heading, .panel-footer{
 	background-color: inherit;
@@ -342,7 +362,7 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 .bg-desk-equipment{
 	background-image:url('img/desk-equipment.jpg');
 }
-#selected{
+.selected{
 	background-color: #696969;
 }
 

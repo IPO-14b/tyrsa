@@ -35,8 +35,21 @@ function uploadFile(){
 }
 function sync(){
 	const ipcRenderer = require('electron').ipcRenderer
+	const remote = require('electron').remote;
+	remote.getGlobal('currentPath') = ".";
+	remote.getGlobal('parentPath') = "";
 	alert("Начало синхронизации. Дождитесь сообщения об окончании!")
 	ipcRenderer.send('sync');
+}
+function openFolder(){
+	const ipcRenderer = require('electron').ipcRenderer
+	var selected = document.getElementsByClassName("selected");
+	if(selected.length != 0){
+		var text = selected[0].getElementsByTagName("div")[0].innerText;
+		ipcRenderer.send('openFolder', text);
+	}
+	else
+		alert("Вы не выбрали папку");
 }
 </script>
 
@@ -54,10 +67,10 @@ function sync(){
 		<div class="row voffset">
 			<div class="col-sm-4">
 				<a class="btn btn-d btn-lg btn-block" onclick="sync()">Синхронизировать</a>
-				<a class="btn btn-d btn-lg btn-block">Доступные мне</a>
-				<a class="btn btn-d btn-lg btn-block">Общий доступ</a>
-				<a class="btn btn-d btn-lg btn-block">Фото</a>
-				<a class="btn btn-d btn-lg btn-block">Корзина</a>
+				<a class="btn btn-d btn-lg btn-block" >Мой диск</a>
+				<a class="btn btn-d btn-lg btn-block" href="https://drive.google.com/drive/my-drive">Открыть в браузере</a>
+				<a class="btn btn-d btn-lg btn-block" href="https://drive.google.com/drive/photos">Фото</a>
+				<a class="btn btn-d btn-lg btn-block" href="https://drive.google.com/drive/trash">Корзина</a>
 			</div>
 			<div class="col-sm-4">
 				<div class="file-list" id="file-list">
@@ -67,7 +80,7 @@ function sync(){
 				<a class="btn btn-d btn-block btn-lg" onclick="uploadFile()">Загрузить</a>
 				<div class="text-center">
 					<a class="btn btn-d btn-block btn-lg">Скачать</a>
-				</div><a class="btn btn-d btn-block btn-lg">Открыть</a>
+				</div><a class="btn btn-d btn-block btn-lg" onclick="openFolder()">Открыть папку</a>
 				<a class="btn btn-d btn-lg btn-block">Поделиться</a>
 				<a class="btn btn-d btn-lg btn-block">Копировать</a>
 				<a class="btn btn-d btn-lg btn-block">Удалить</a>
@@ -88,10 +101,58 @@ function sync(){
 <!-- Main container END -->
     
 <script type="text/javascript">
+window.addEventListener("keydown",function(e){
+	if(e.code === "ArrowDown" || e.code === "ArrowUp"){
+		//e.preventDefault();
+		var selected = document.getElementsByClassName("selected");
+		var doc = document.getElementById("file-list");
+		if(selected != null){
+			var array = doc.getElementsByClassName("panel");
+			let i;
+			var found = false;
+			
+			for(i = 0; i < array.length; i++){
+				let elem = array[i].getElementsByClassName("selected");
+				if(elem.length != 0){
+					found = true;
+					break;		
+				}
+			}
+			if(found){
+				console.log(i)
+				if(e.code === "ArrowDown" && i != (array.length - 1)){
+					var elem = array[i].getElementsByClassName("selected");
+					elem[0].classList.remove("selected")
+					array[i+1].getElementsByClassName("panel-body")[0].classList.add("selected")	
+				}
+				else if(e.code === "ArrowUp" && i != 0){
+					var elem = array[i].getElementsByClassName("selected");
+					elem[0].classList.remove("selected")
+					array[i-1].getElementsByClassName("panel-body")[0].classList.add("selected")	
+				}
+			}
+		}
+	}
+})
+
 
 const ipcRenderer = require('electron').ipcRenderer
+ipcRenderer.on('error', function(event, message){
+	alert(message)
+})
 
 ipcRenderer.on('info' , function(event , data){  
+	let clickHandler = function(e){
+    	var p = e.target;
+    	while (p != null && !p.classList.contains("panel-body")){
+    		p = p.parentElement;
+    	}
+        var selected = document.getElementsByClassName("selected");
+        for (let i = 0; i < selected.length; i++){
+        	selected[i].classList.remove("selected");
+        }
+        p.classList.add("selected");
+    };
 	var list = document.getElementById("file-list");
 	list.innerHTML = '';
 	for (var i = 0; i < data.length; i++){
@@ -102,8 +163,10 @@ ipcRenderer.on('info' , function(event , data){
 		var panelBody = document.createElement("div");
 		panelBody.classList.add("panel-body");
 
-		var p = document.createElement("a");
+		var p = document.createElement("div");
+		var q = p;
 		p.innerText = data[i]["name"];
+		panelBody.onclick = clickHandler;
 
 		var img = document.createElement("img");
 		if(data[i]["folder"] === true)
@@ -114,8 +177,7 @@ ipcRenderer.on('info' , function(event , data){
 		panelBody.appendChild(p);
 		panelDiv.appendChild(panelBody);
 		list.appendChild(panelDiv);
-	}
-	alert("Загрузка завершена!")	
+	}	
 });
  </script>
 </body>
