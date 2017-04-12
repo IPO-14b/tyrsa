@@ -51,6 +51,9 @@ function openFolder(){
 	else
 		alert("Вы не выбрали папку");
 }
+function openExternal(link){
+	require('electron').shell.openExternal(link)
+}
 </script>
 
 <!-- Main container -->
@@ -68,9 +71,9 @@ function openFolder(){
 			<div class="col-sm-4">
 				<a class="btn btn-d btn-lg btn-block" onclick="sync()">Синхронизировать</a>
 				<a class="btn btn-d btn-lg btn-block" >Мой диск</a>
-				<a class="btn btn-d btn-lg btn-block" href="https://drive.google.com/drive/my-drive">Открыть в браузере</a>
-				<a class="btn btn-d btn-lg btn-block" href="https://drive.google.com/drive/photos">Фото</a>
-				<a class="btn btn-d btn-lg btn-block" href="https://drive.google.com/drive/trash">Корзина</a>
+				<a class="btn btn-d btn-lg btn-block" onclick="openExternal('https://drive.google.com/drive/my-drive')">Открыть в браузере</a>
+				<a class="btn btn-d btn-lg btn-block" onclick="openExternal('https://drive.google.com/drive/photos')">Фото</a>
+				<a class="btn btn-d btn-lg btn-block" onclick="openExternal('https://drive.google.com/drive/trash')">Корзина</a>
 			</div>
 			<div class="col-sm-4">
 				<div class="file-list" id="file-list">
