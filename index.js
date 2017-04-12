@@ -18,13 +18,18 @@ var config = {
 };
 var globalToken;
 global.currentPath = ".";
+global.parentPath = "";
 var request = require('request');
+var Stack = require('stackjs');
+var stack = new Stack();
+
 const options = {
     scope: 'https://www.googleapis.com/auth/drive',
     accessType: 'offline'
   }
 function createWindow () {
   win = new BrowserWindow({width: 800, height: 600,show:false})
+  win.setMenu(null);
    const windowParams = {
     alwaysOnTop: true,
     autoHideMenuBar: true,
@@ -76,6 +81,60 @@ function createWindow () {
 
 app.on('ready', createWindow)
 
+ipcMain.on('openFolder', (event, arg) =>{
+  //win.webContents.send('error',path.dirname(currentPath + "/test"));
+  for(var i = 0; i < resultArray.length; i++){
+    if(resultArray[i].name === arg){
+      if(resultArray[i].folder){
+        if(arg === "..."){
+          try{
+            resultArray = stack.peek();
+            win.webContents.send('info',resultArray);
+          }catch(e){}
+        }
+        else{
+          var request = {
+            pageSize: 1000,
+            q: "trashed=false and '" + resultArray[i].id + "' in parents"
+          }
+          var parentId = resultArray[i].id
+          gDrive(globalToken).files().list(request, (params,callback) => {
+            var body = callback.body
+            body = JSON.parse(body)
+            body = body["items"]
+            parentPath = currentPath
+            currentPath = currentPath + "/" + resultArray[i]
+            stack.push(resultArray);
+            resultArray = new Array();
+            var tmp = {};
+            tmp.name = "...";
+            tmp.id = parentId;
+            tmp.folder = true;
+            resultArray.push(tmp)
+            for(var i in body){
+              tmp = {};
+              var name = body[i]["title"]
+              var id = body[i]["id"]
+              tmp.id = id;
+              tmp.name = name;
+              if(body[i]["mimeType"] === "application/vnd.google-apps.folder"){
+                tmp.folder = true;
+              }
+              else{
+                tmp.folder = false;
+              }
+              resultArray.push(tmp)
+            }
+            win.webContents.send('info',resultArray);
+          })
+        }
+      }
+      else
+        win.webContents.send('error',"Это не папка");
+      break;
+    }
+  }
+})
 ipcMain.on('sync',(event, arg) => {
   const myApiOauth = electronOauth2(config);
   myApiOauth.getAccessToken(options)
