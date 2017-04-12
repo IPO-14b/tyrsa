@@ -33,6 +33,21 @@ function uploadFile(){
 	});
 
 }
+function downloadFile(){
+	const dialog = require('electron').remote.dialog
+	const ipcRenderer = require('electron').ipcRenderer
+	var selected = document.getElementsByClassName("selected");
+	if(selected != null){
+		var fileName = selected[0].getElementsByTagName("div")[0].innerText;
+		dialog.showOpenDialog({properties: ['openDirectory']},function(fileNames){
+			if (fileNames === undefined) return;
+			var filePath = fileNames[0];
+			ipcRenderer.send('downloadFile', fileName, filePath);
+		});
+	}
+	else
+		alert("Вы не выбрали файл для скачивания")
+}
 function sync(){
 	const ipcRenderer = require('electron').ipcRenderer
 	const remote = require('electron').remote;
@@ -82,7 +97,7 @@ function openExternal(link){
 			<div class="col-sm-4">
 				<a class="btn btn-d btn-block btn-lg" onclick="uploadFile()">Загрузить</a>
 				<div class="text-center">
-					<a class="btn btn-d btn-block btn-lg">Скачать</a>
+					<a class="btn btn-d btn-block btn-lg" onclick="downloadFile()">Скачать</a>
 				</div><a class="btn btn-d btn-block btn-lg" onclick="openFolder()">Открыть папку</a>
 				<a class="btn btn-d btn-lg btn-block">Поделиться</a>
 				<a class="btn btn-d btn-lg btn-block">Копировать</a>

@@ -82,7 +82,6 @@ function createWindow () {
 app.on('ready', createWindow)
 
 ipcMain.on('openFolder', (event, arg) =>{
-  //win.webContents.send('error',path.dirname(currentPath + "/test"));
   for(var i = 0; i < resultArray.length; i++){
     if(resultArray[i].name === arg){
       if(resultArray[i].folder){
@@ -147,6 +146,33 @@ ipcMain.on('sync',(event, arg) => {
           listFiles(newToken.access_token)
         });
     });
+})
+
+ipcMain.on('downloadFile',(event, arg, path) =>{
+  for(var i = 0; i < resultArray.length; i++){
+    if(resultArray[i].name === arg){
+      if(!resultArray[i].folder){
+        var fullpath = process.platform === "win32" ? path + "\\" + arg 
+        : path + "/" + arg; 
+        var url = 'https://www.googleapis.com/drive/v2/files/' + resultArray[i].id + '?alt=media';
+        request({
+          'url': url,
+          'headers' : {
+            'Authorization': 'Bearer ' + globalToken
+          }
+        })
+        .on('response', function(response) {
+          if(response.statusCode == 200)
+            win.webContents.send('error',"Скачивание успешно");
+          else
+            win.webContents.send('error',"Ошибка при скачивании");
+        })
+        .pipe(fs.createWriteStream(fullpath))
+      }
+      else
+        win.webContents.send('error',"Это не файл");
+    }
+  }
 })
 
 ipcMain.on('sendFile', (event, arg) => {  
