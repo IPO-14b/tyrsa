@@ -290,5 +290,5 @@ function write(){
   jsonfile.writeFile(file, resultArray, function(err) {})
   win.show();
   win.webContents.send('info',resultArray);
-  //win.webContents.openDevTools();
+  win.webContents.openDevTools();
 }
