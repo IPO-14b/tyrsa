@@ -72,11 +72,9 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
-  // win.on('closed', () => {
-  //   app.quit()
-  // })
-
-
+    win.on('closed', () => {
+    app.quit()
+    })
 }
 
 app.on('ready', createWindow)
@@ -222,9 +220,9 @@ ipcMain.on('sendFile', (event, arg) => {
 });
 
 app.on('window-all-closed', () => {
-  // if (process.platform !== 'darwin') {
-  //   app.quit()
-  // }
+    if (process.platform !== 'darwin') {
+        app.quit()
+    }
 })
 
  app.on('activate', () => {
@@ -292,5 +290,5 @@ function write(){
   jsonfile.writeFile(file, resultArray, function(err) {})
   win.show();
   win.webContents.send('info',resultArray);
-  win.webContents.openDevTools();
+  //win.webContents.openDevTools();
 }
