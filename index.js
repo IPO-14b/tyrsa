@@ -62,6 +62,7 @@ function createWindow () {
             })
         });
     });
+
     win.loadURL(url.format({ 
         pathname: path.join(__dirname, 'index.html'),
         protocol: 'file:',
@@ -69,6 +70,7 @@ function createWindow () {
     }))
     win.on('closed', () => {
         app.quit()
+
     })
 }
 
@@ -281,9 +283,10 @@ function listFiles(token,requirePageToken,pageToken){
 }
 
 function write(){
+
     var file = 'data.json'
     jsonfile.writeFile(file, resultArray, function(err) {})
     win.show();
     win.webContents.send('info',resultArray);
-    //win.webContents.openDevTools();
+    win.webContents.openDevTools();
 }

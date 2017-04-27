@@ -45,15 +45,12 @@ function downloadFile(){
 			ipcRenderer.send('downloadFile', fileName, filePath);
 		});
 	}
-	else
-		alert("Вы не выбрали файл для скачивания")
 }
 function sync(){
 	const ipcRenderer = require('electron').ipcRenderer
 	const remote = require('electron').remote;
 	remote.getGlobal('currentPath') = ".";
 	remote.getGlobal('parentPath') = "";
-	alert("Начало синхронизации. Дождитесь сообщения об окончании!")
 	ipcRenderer.send('sync');
 }
 function openFolder(){
@@ -106,7 +103,6 @@ function openExternal(link){
 			</div>
 		</div>
 	</div>
-	<div class="test">Powered By Tyrsa</div>
 </div>
 <!-- bloc-0 END -->
 
