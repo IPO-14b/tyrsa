@@ -72,9 +72,9 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
-  win.on('closed', () => {
-    app.quit()
-  })
+  // win.on('closed', () => {
+  //   app.quit()
+  // })
 
 
 }
