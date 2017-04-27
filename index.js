@@ -134,7 +134,7 @@ ipcMain.on('sync',(event, arg) => {
         myApiOauth.refreshToken(token.refresh_token)
         .then(newToken => {
             globalToken = newToken.access_token;
-            console.log(newToken)
+            //console.log(newToken)
             resultArray = new Array();
             listFiles(newToken.access_token)
         });
