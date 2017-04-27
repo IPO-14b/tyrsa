@@ -234,7 +234,7 @@ function listFiles(token,requirePageToken,pageToken){
     }
     else{
         var request = {
-          pageSize: 1000,
+          pageSize: 200,
           pageToken: pageToken,
           q: "trashed=false"
         };
