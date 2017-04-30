@@ -1,0 +1,176 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    
+	<link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css"><link rel="stylesheet" href="./css/font-awesome.min.css">
+    
+	<script src="./js/jquery-2.1.0.min.js"></script>
+	<script src="./js/bootstrap.min.js"></script>
+	<script src="./js/blocs.min.js"></script>
+    <title>Home</title>
+
+    
+<!-- Google Analytics -->
+ 
+<!-- Google Analytics END -->
+    
+</head>
+<body>
+<script type="text/javascript">
+function uploadFile(){
+	const dialog = require('electron').remote.dialog
+	const ipcRenderer = require('electron').ipcRenderer
+	dialog.showOpenDialog({properties: ['openFile']},function(fileNames){
+		if (fileNames === undefined) return;
+ 	 	var fileName = fileNames[0];
+		ipcRenderer.send('sendFile', fileName);
+	});
+
+}
+function sync(){
+	const ipcRenderer = require('electron').ipcRenderer
+	alert("Начало синхронизации. Дождитесь сообщения об окончании!")
+	ipcRenderer.send('sync');
+}
+function openFolder(){
+	var selected = document.getElementsByClassName("selected");
+	if(selected.length != 0){
+		var text = selected[0].getElementsByTagName("div")[0].innerText;
+		console.log(text);
+	}
+	else
+		alert("Вы не выбрали папку");
+	
+}
+</script>
+
+<!-- Main container -->
+<div class="page-container">
+    
+<!-- bloc-0 -->
+<div class="bloc bgc-white bg-desk-equipment d-bloc" id="bloc-0">
+	<div class="container bloc-lg">
+		<div class="row">
+			<div class="col-sm-12">
+				<span class="empty-column thin"></span>
+			</div>
+		</div>
+		<div class="row voffset">
+			<div class="col-sm-4">
+				<a class="btn btn-d btn-lg btn-block" onclick="sync()">Синхронизировать</a>
+				<a class="btn btn-d btn-lg btn-block">Доступные мне</a>
+				<a class="btn btn-d btn-lg btn-block">Общий доступ</a>
+				<a class="btn btn-d btn-lg btn-block">Фото</a>
+				<a class="btn btn-d btn-lg btn-block">Корзина</a>
+			</div>
+			<div class="col-sm-4">
+				<div class="file-list" id="file-list">
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<a class="btn btn-d btn-block btn-lg" onclick="uploadFile()">Загрузить</a>
+				<div class="text-center">
+					<a class="btn btn-d btn-block btn-lg">Скачать</a>
+				</div><a class="btn btn-d btn-block btn-lg" onclick="openFolder()">Открыть папку</a>
+				<a class="btn btn-d btn-lg btn-block">Поделиться</a>
+				<a class="btn btn-d btn-lg btn-block">Копировать</a>
+				<a class="btn btn-d btn-lg btn-block">Удалить</a>
+				<a class="btn btn-d btn-lg btn-block ">Свойства</a>
+			</div>
+		</div>
+	</div>
+	<div class="test">Powered By Tyrsa</div>
+</div>
+<!-- bloc-0 END -->
+
+<!-- ScrollToTop Button -->
+<a class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1')"><span class="fa fa-chevron-up"></span></a>
+<!-- ScrollToTop Button END-->
+
+
+</div>
+<!-- Main container END -->
+    
+<script type="text/javascript">
+	window.addEventListener("keydown",function(e){
+		if(e.code === "ArrowDown" || e.code === "ArrowUp"){
+			e.preventDefault();
+			var selected = document.getElementsByClassName("selected");
+			var doc = document.getElementById("file-list");
+			if(selected != null){
+				var array = doc.getElementsByClassName("panel");
+				let i;
+				var found = false;
+				
+				for(i = 0; i < array.length; i++){
+					let elem = array[i].getElementsByClassName("selected");
+					if(elem.length != 0){
+						found = true;
+						break;		
+					}
+				}
+				if(found){
+					console.log(i)
+					if(e.code === "ArrowDown" && i != (array.length - 1)){
+						var elem = array[i].getElementsByClassName("selected");
+						elem[0].classList.remove("selected")
+						array[i+1].getElementsByClassName("panel-body")[0].classList.add("selected")	
+					}
+					else if(e.code === "ArrowUp" && i != 0){
+						var elem = array[i].getElementsByClassName("selected");
+						elem[0].classList.remove("selected")
+						array[i-1].getElementsByClassName("panel-body")[0].classList.add("selected")	
+					}
+				}
+			}
+		}
+	})
+	var list = document.getElementById("file-list");
+	list.innerHTML = '';
+    var data = [{"id":"0BzPvmQNCUVySYmhLYzV3Skd5dWc","name":"Bek_K_Shablony_realizacii_korporativnyh_priloz.djvu","folder":false},{"id":"0Bzt2Ybe4_OfyOTBLZ09pMHhuZjQ","name":"IPO-14B","folder":true},{"id":"0BzPvmQNCUVySbUI2V1VyeHd1X1k","name":"МОТС.zip","folder":false},{"id":"0BzPvmQNCUVySWVRXeUd0a01Sc0E","name":"Конспекты","folder":true},{"id":"0BzPvmQNCUVySaThIQnNCQzRWa0E","name":"3D Printer","folder":true},{"id":"0BzPvmQNCUVySTF9MWml4NV90dHc","name":"Javafx native UI Windows","folder":true},{"id":"0BzPvmQNCUVySY3F4T3p2dVJNVFk","name":"Орлов_Технологии разработки программного обеспечения_2002 (1)!!!!.pdf","folder":false},{"id":"0BzPvmQNCUVySdEJyUldHX0NpU0E","name":"Poyasnitelnaya_zapiska_AGS.docx","folder":false},{"id":"0BzPvmQNCUVyScmxPZjJ1TjBvV0k","name":"Gradle in Action.pdf","folder":false},{"id":"0BzPvmQNCUVySbm9yUFExNk85aWM","name":"GroovyinAction,SecondEdition.pdf","folder":false}]
+
+    let clickHandler = function(e){
+    	var p = e.target;
+    	while (p != null && !p.classList.contains("panel-body")){
+    		p = p.parentElement;
+    	}
+        var selected = document.getElementsByClassName("selected");
+        for (let i = 0; i < selected.length; i++){
+        	selected[i].classList.remove("selected");
+        }
+        p.classList.add("selected");
+    };
+
+	for (var i = 0; i < data.length; i++){
+
+	var panelDiv = document.createElement("div");
+	panelDiv.classList.add("panel");
+
+	var panelBody = document.createElement("div");
+	panelBody.classList.add("panel-body");
+
+
+	var p = document.createElement("div");
+	var q = p;
+	p.innerText = data[i]["name"];
+	panelBody.onclick = clickHandler;
+
+	var img = document.createElement("img");
+	if(data[i]["folder"] === true)
+		img.setAttribute("src","./img/folder-icon3.png");
+	else
+		img.setAttribute("src","./img/docs-icon-2.png");
+	panelBody.appendChild(img);
+	panelBody.appendChild(p);
+	panelDiv.appendChild(panelBody);
+	list.appendChild(panelDiv);
+	}
+ </script>
+</body>
+</html>

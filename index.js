@@ -26,7 +26,11 @@ var stack = new Stack();
 const options = {
     scope: 'https://www.googleapis.com/auth/drive',
     accessType: 'offline'
-  }
+}
+/**
+* Функция создания окна
+* Отрисовка окна, авторазиация в Google API
+*/
 function createWindow () {
     win = new BrowserWindow({width: 800, height: 600,show:false})
     win.setMenu(null);
@@ -37,13 +41,16 @@ function createWindow () {
             nodeIntegration: false
         }
     }
+    //Создание окна
     let wait = new BrowserWindow({parent:win, modal:true,width: 800, height: 600, show:false})
+    /** Обработка события загрузки URL */
     wait.loadURL(url.format({ 
         pathname: path.join(__dirname, 'wait.html'),
         protocol: 'file:',
         slashes: true
     }))
     const myApiOauth = electronOauth2(config, windowParams);
+    //Получение токена
     myApiOauth.getAccessToken(options)
     .then(token => {
         myApiOauth.refreshToken(token.refresh_token)
@@ -62,24 +69,27 @@ function createWindow () {
             })
         });
     });
-
+    /** Обработка события загрузки URL */
     win.loadURL(url.format({ 
         pathname: path.join(__dirname, 'index.html'),
         protocol: 'file:',
         slashes: true
     }))
+    /** Обработка события закрытия окна */
     win.on('closed', () => {
         app.quit()
-
     })
 }
-
+/** Обработчик события готовности программы к выполнению */
 app.on('ready', createWindow)
-
+/**
+* Обработчик команды openFolder html страницы
+*/
 ipcMain.on('openFolder', (event, arg) =>{
     for(var i = 0; i < resultArray.length; i++){
         if(resultArray[i].name === arg){
             if(resultArray[i].folder){
+                //Условие возврата на родительский каталог
                 if(arg === "..."){
                     try{
                         resultArray = stack.peek();
@@ -87,12 +97,14 @@ ipcMain.on('openFolder', (event, arg) =>{
                     }catch(e){}
                 }
                 else{
+                    //Генерация запроса на получение дочерних элементов
                     var request = {
                         pageSize: 1000,
                         q: "trashed=false and '" + resultArray[i].id + "' in parents"
                     }
                     var parentId = resultArray[i].id
                     gDrive(globalToken).files().list(request, (params,callback) => {
+                        //Формирование списка каталогов
                         var body = callback.body
                         body = JSON.parse(body)
                         body = body["items"]
@@ -119,6 +131,7 @@ ipcMain.on('openFolder', (event, arg) =>{
                             }
                             resultArray.push(tmp)
                         }
+                        //Отправка списка каталогов на html страницу
                         win.webContents.send('info',resultArray);
                     })
                 }
@@ -129,8 +142,12 @@ ipcMain.on('openFolder', (event, arg) =>{
         }
     }
 })
+/** 
+* Обработка события синхронизации списка файлов корневого каталога
+*/
 ipcMain.on('sync',(event, arg) => {
     const myApiOauth = electronOauth2(config);
+    //Получаем и обновляем токен
     myApiOauth.getAccessToken(options)
     .then(token => {
         myApiOauth.refreshToken(token.refresh_token)
@@ -142,14 +159,18 @@ ipcMain.on('sync',(event, arg) => {
         });
     });
 })
-
+/** 
+* Обработка события скачивания файла
+*/
 ipcMain.on('downloadFile',(event, arg, path) =>{
     for(var i = 0; i < resultArray.length; i++){
         if(resultArray[i].name === arg){
             if(!resultArray[i].folder){
+                //Генерация пути и адреса скачивания
                 var fullpath = process.platform === "win32" ? path + "\\" + arg 
                     : path + "/" + arg; 
                 var url = 'https://www.googleapis.com/drive/v2/files/' + resultArray[i].id + '?alt=media';
+                //Отправка запроса на сервер Google Drive
                 request({
                     'url': url,
                     'headers' : {
@@ -169,7 +190,9 @@ ipcMain.on('downloadFile',(event, arg, path) =>{
         }
     }
 })
-
+/** 
+* Обработка события загрузки файла
+*/
 ipcMain.on('sendFile', (event, arg) => {  
     var fstatus = fs.statSync(arg);
       fs.open(arg, 'r', function(status, fileDescripter) {
@@ -177,6 +200,7 @@ ipcMain.on('sendFile', (event, arg) => {
           callback(status.message);
           return;
         }
+        //Загрузка файла с локальной машины в буфер
         var buffer = new Buffer(fstatus.size);
         console.log("NAME: ",path.parse(arg).base);
         fs.read(fileDescripter, buffer, 0, fstatus.size, 0, function(err, num) {
@@ -201,6 +225,12 @@ ipcMain.on('sendFile', (event, arg) => {
                     }
                 ]
             },function(arg0,arg1,arg2){
+                /** 
+                * Функцмя обработки ошибок
+                * @param {int} arg0 Код ошибки
+                * @param {string} arg1 Текст ошибки
+                * @param {string} arg2 Текст результата  
+                */
                 var jsonArg = JSON.parse(arg2)
                 var name = jsonArg["title"]
                 var id = jsonArg["id"]
@@ -214,19 +244,28 @@ ipcMain.on('sendFile', (event, arg) => {
         });
     }); 
 });
-
+/**
+* Обработка события закрытия окна
+*/
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
 })
-
- app.on('activate', () => {
+/**
+* Обработка события активации окна
+*/
+app.on('activate', () => {
     if (win === null) {
         createWindow()
     }
- })
-
+})
+/**
+* Обработка события закрытия окна
+* @param {string} token Токен для запроса 
+* @param {bool} requirePageToken Требование токена для многостраничных запросов
+* @param {string} pageToken Токен первой страницы
+*/
 function listFiles(token,requirePageToken,pageToken){
     if(requirePageToken === false){
         var request = {
@@ -268,7 +307,7 @@ function listFiles(token,requirePageToken,pageToken){
                             tmp.folder = false;
                         }
                         resultArray.push(tmp)
-                        }
+                    }
                 }
                 catch(e){}
             }
@@ -282,8 +321,10 @@ function listFiles(token,requirePageToken,pageToken){
     return true;
 }
 
+/**
+* Функция отправки данных на html страницу
+*/
 function write(){
-
     var file = 'data.json'
     jsonfile.writeFile(file, resultArray, function(err) {})
     win.show();
