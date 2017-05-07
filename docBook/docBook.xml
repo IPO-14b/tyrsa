@@ -8,99 +8,123 @@
     <abstract>
         <title>Пример 1: Синхронизация</title>
         <para>Функция обновляет список файлов по запросу пользователя</para>
-        <para>ipcMain.on('sync',(event, arg) => {</para>
-        <para>    const myApiOauth = electronOauth2(config);</para>
-        <para>    myApiOauth.getAccessToken(options)</para>
-        <para>    .then(token => {</para>
-        <para>        myApiOauth.refreshToken(token.refresh_token)</para>
-        <para>        .then(newToken => {</para>
-        <para>            globalToken = newToken.access_token;</para>
-        <para>            resultArray = new Array();</para>
-        <para>            listFiles(newToken.access_token)</para>
-        <para>        });</para>
-        <para>    });</para>
-        <para>})</para>
+        <para>По нажатию на кнопку синхронизации на html-странице, вызывается событие Sync.</para>
+        <para>Система обращается к Google API за актуальным токеном и сохраняет его в системе.</para>
+        <para>Создается массив для хранения результатов. Содержимое элемента массива: ID файла, название, флаг файл/папка.</para>
+        <para>Затем запускается рекурсивная функция listFiles, которая отправляет запрос к Google на получение файлов корневого каталога.</para>
+        <para>Файлы корневого каталога идентифицируются с помощью флага isRoot.</para>
+        <programlisting>
+	        ipcMain.on('sync',(event, arg) => {
+	            const myApiOauth = electronOauth2(config);
+	            myApiOauth.getAccessToken(options)
+	            .then(token => {
+	                myApiOauth.refreshToken(token.refresh_token)
+	                .then(newToken => {
+	                    globalToken = newToken.access_token;
+	                    resultArray = new Array();
+	                    listFiles(newToken.access_token)
+	                });
+	            });
+	        })
+   		</programlisting>
     </abstract>
     <abstract>
         <title>Пример 2: Скачивание файла</title>
         <para>Скачивание указанного файла с сервера.</para>
         <para>Сохранение скачанного файла в указанную папку</para>
-        <para>ipcMain.on('downloadFile',(event, arg, path) =>{</para>
-        <para>    for(var i = 0; i &lt; resultArray.length; i++){</para>
-        <para>        if(resultArray[i].name === arg){</para>
-        <para>            if(!resultArray[i].folder){</para>
-        <para>                //Генерация пути и адреса скачивания</para>
-        <para>                var fullpath = process.platform === "win32" ? path + "\\" + arg</para> 
-        <para>                    : path + "/" + arg;</para> 
-        <para>                var url = 'https://www.googleapis.com/drive/v2/files/' + resultArray[i].id + '?alt=media';</para>
-        <para>                //Отправка запроса на сервер Google Drive</para>
-        <para>                request({</para>
-        <para>                    'url': url,</para>
-        <para>                    'headers' : {</para>
-        <para>                        'Authorization': 'Bearer ' + globalToken</para>
-        <para>                    }</para>
-        <para>                })</para>
-        <para>                .on('response', function(response) {</para>
-        <para>                    if(response.statusCode == 200)</para>
-        <para>                        win.webContents.send('error',"Скачивание успешно");</para>
-        <para>                    else</para>
-        <para>                    win.webContents.send('error',"Ошибка при скачивании");</para>
-        <para>                })</para>
-        <para>                .pipe(fs.createWriteStream(fullpath))</para>
-        <para>            }</para>
-        <para>            else</para>
-        <para>                win.webContents.send('error',"Это не файл");</para>
-        <para>        }</para>
-        <para>    }</para>
-        <para>})</para>
+        <para>По нажатию на кнопку скачивания файла на html-странице, вызывается диалоговое окно с выбором пути сохранения файла(параметр path).</para>
+        <para>Параметр arg - имя файла для скачивания, выбирается из списка файлов на html-странице.</para>
+        <para>Функция проверяет, существует ли такой файл и не является ли он каталогом, затем генерирует путь на скачивание в зависимости от операционной системы(fullpath).</para>
+        <para>Затем генерируется URL скачивания файла и запрос, состоящий из URL'a и токена.</para>
+        <para>В случае успешности скачивания Google возвращает код 200. В этом случае файл записывается на ПК используя модуль FS.</para>
+        <programlisting>
+        ipcMain.on('downloadFile',(event, arg, path) =>{
+            for(var i = 0; i &lt; resultArray.length; i++){
+                if(resultArray[i].name === arg){
+                    if(!resultArray[i].folder){
+                        //Генерация пути и адреса скачивания
+                        var fullpath = process.platform === "win32" ? path + "\\" + arg
+                            : path + "/" + arg;
+                        var url = 'https://www.googleapis.com/drive/v2/files/' + resultArray[i].id + '?alt=media';
+                        //Отправка запроса на сервер Google Drive
+                        request({
+                            'url': url,
+                            'headers' : {
+                                'Authorization': 'Bearer ' + globalToken
+                            }
+                        })
+                        .on('response', function(response) {
+                            if(response.statusCode == 200)
+                                win.webContents.send('error',"Скачивание успешно");
+                            else
+                            win.webContents.send('error',"Ошибка при скачивании");
+                        })
+                        .pipe(fs.createWriteStream(fullpath))
+                    }
+                    else
+                        win.webContents.send('error',"Это не файл");
+                }
+            }
+        })
+    	</programlisting>
     </abstract>
     <abstract>
         <title>Пример 3: Загрузка файла</title>
         <para>Загрузка файла в Google Drive</para>
-        <para>ipcMain.on('sendFile', (event, arg) => {</para>  
-        <para>    var fstatus = fs.statSync(arg);</para>
-        <para>      fs.open(arg, 'r', function(status, fileDescripter) {</para>
-        <para>        if (status) {</para>
-        <para>          callback(status.message);</para>
-        <para>          return;</para>
-        <para>        }</para>
-        <para>        //Загрузка файла с локальной машины в буфер</para>
-        <para>        var buffer = new Buffer(fstatus.size);</para>
-        <para>        console.log("NAME: ",path.parse(arg).base);</para>
-        <para>        fs.read(fileDescripter, buffer, 0, fstatus.size, 0, function(err, num) {</para>
-        <para>            request.post({</para>
-        <para>                'url': 'https://www.googleapis.com/upload/drive/v2/files',</para>
-        <para>                'qs': {</para>
-        <para>                    'uploadType': 'multipart'</para>
-        <para>                },</para>
-        <para>                'headers' : {</para>
-        <para>                    'Authorization': 'Bearer ' + globalToken</para>
-        <para>                },</para>
-        <para>                'multipart':  [</para>
-        <para>                    {</para>
-        <para>                        'Content-Type': 'application/json; charset=UTF-8',</para>
-        <para>                        'body': JSON.stringify({</para>
-        <para>                            'title': path.parse(arg).base</para>
-        <para>                        })</para>
-        <para>                    },</para>
-        <para>                    {</para>
-        <para>                        'Content-Type': mime.lookup(arg) || "application/octet-stream",</para>
-        <para>                        'body': buffer</para>
-        <para>                    }</para>
-        <para>                ]</para>
-        <para>            },function(arg0,arg1,arg2){</para>
-        <para>                var jsonArg = JSON.parse(arg2)</para>
-        <para>                var name = jsonArg["title"]</para>
-        <para>                var id = jsonArg["id"]</para>
-        <para>                var tmp = {};</para>
-        <para>                tmp.id = id;</para>
-        <para>                tmp.name = name;</para>
-        <para>                tmp.folder = false;</para>
-        <para>                resultArray.push(tmp);</para>
-        <para>                write();</para>
-        <para>            });  </para>
-        <para>        });</para>
-        <para>    }); </para>
-        <para>}); </para>
+        <para>По нажатию на кнопку загрузки файла появляется диалоговое окно с выбором файла и вызывается событие (параметр arg - путь к файлу)</para>
+        <para>Модуль FS читает указанный файл и записывает его в буфер.</para>
+        <para>Затем система генерирует запрос:</para>
+        <para>Url - путь к файлам в Google Drive; qs - тип загрузки;</para>
+        <para>headers - хранит временный токен;</para>
+        <para>title - имя файла(извлекается с помощью модуля Path);</para>
+        <para>Content-Type - Mime объекта; body - файл для загрузки.</para>
+        <para>В результате выполнения операции получаем метаинформацию о загруженом файле и дописываем его в общий список файлов</para>
+        <programlisting>
+        ipcMain.on('sendFile', (event, arg) => {  
+            var fstatus = fs.statSync(arg);
+              fs.open(arg, 'r', function(status, fileDescripter) {
+                if (status) {
+                  callback(status.message);
+                  return;
+                }
+                //Загрузка файла с локальной машины в буфер
+                var buffer = new Buffer(fstatus.size);
+                console.log("NAME: ",path.parse(arg).base);
+                fs.read(fileDescripter, buffer, 0, fstatus.size, 0, function(err, num) {
+                    request.post({
+                        'url': 'https://www.googleapis.com/upload/drive/v2/files',
+                        'qs': {
+                            'uploadType': 'multipart'
+                        },
+                        'headers' : {
+                            'Authorization': 'Bearer ' + globalToken
+                        },
+                        'multipart':  [
+                            {
+                                'Content-Type': 'application/json; charset=UTF-8',
+                                'body': JSON.stringify({
+                                    'title': path.parse(arg).base
+                                })
+                            },
+                            {
+                                'Content-Type': mime.lookup(arg) || "application/octet-stream",
+                                'body': buffer
+                            }
+                        ]
+                    },function(arg0,arg1,arg2){
+                        var jsonArg = JSON.parse(arg2)
+                        var name = jsonArg["title"]
+                        var id = jsonArg["id"]
+                        var tmp = {};
+                        tmp.id = id;
+                        tmp.name = name;
+                        tmp.folder = false;
+                        resultArray.push(tmp);
+                        write();
+                    });  
+                });
+            }); 
+        }); 
+    	</programlisting>
     </abstract>
 </article>
